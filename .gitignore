@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+# la app se genera con ./build_app.sh
+MetAI Toru.app/
