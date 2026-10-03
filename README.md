@@ -27,7 +27,7 @@
 必要なもの：macOS、Python 3.10以上、`brew install ffmpeg node`
 
 ```bash
-git clone <このリポジトリ> && cd <このリポジトリ>
+git clone https://github.com/metaijp/metai-toru.git && cd metai-toru
 ./build_app.sh        # 「MetAI Toru.app」を作成します
 open "MetAI Toru.app"
 ```
@@ -63,7 +63,7 @@ Use the 🌐 button at the top right to change the language (English / 日本語
 Requirements: macOS, Python 3.10+, `brew install ffmpeg node`
 
 ```bash
-git clone <this-repo> && cd <this-repo>
+git clone https://github.com/metaijp/metai-toru.git && cd metai-toru
 ./build_app.sh        # creates "MetAI Toru.app"
 open "MetAI Toru.app"
 ```
@@ -99,7 +99,7 @@ Con el botón 🌐 de arriba a la derecha cambias el idioma (English / 日本語
 Requisitos: macOS, Python 3.10+, `brew install ffmpeg node`
 
 ```bash
-git clone <este-repositorio> && cd <este-repositorio>
+git clone https://github.com/metaijp/metai-toru.git && cd metai-toru
 ./build_app.sh        # crea "MetAI Toru.app"
 open "MetAI Toru.app"
 ```
