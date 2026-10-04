@@ -40,6 +40,8 @@ open "MetAI Toru.app"
 DRM保護されたコンテンツはダウンロードできません。
 本アプリの利用方法について、当社は責任を負いません。
 
+ライセンス：[MIT](LICENSE)
+
 ---
 
 ## English
@@ -76,6 +78,8 @@ Please respect each service's terms of use and copyright.
 DRM-protected content cannot be downloaded.
 The company is not responsible for how users use this application.
 
+License: [MIT](LICENSE)
+
 ---
 
 ## Español
@@ -111,3 +115,5 @@ Solo para uso personal.
 Respeta los términos de uso y los derechos de autor de cada servicio.
 El contenido con protección DRM no se puede descargar.
 La empresa no se hace responsable del uso que los usuarios den a esta aplicación.
+
+Licencia: [MIT](LICENSE)
