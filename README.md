@@ -8,7 +8,7 @@
 
 ## 日本語
 
-**MetAI Toru（取る）** は、動画と音声をダウンロードするmacOS向けのアプリです。
+**MetAI Toru（取る）** は、動画と音声をダウンロードするmacOS / Windows向けのアプリです。
 [yt-dlp](https://github.com/yt-dlp/yt-dlp) を使っています。
 
 ### 使い方
@@ -34,6 +34,19 @@ open "MetAI Toru.app"
 
 ターミナルから使いたい場合：`./dl.py URL [-q 720] [--audio]`
 
+### Windows
+必要なもの：Windows 10 / 11、Python 3.10以上、`winget install Gyan.FFmpeg OpenJS.NodeJS.LTS`
+
+```powershell
+git clone https://github.com/metaijp/metai-toru.git; cd metai-toru
+powershell -ExecutionPolicy Bypass -File install_windows.ps1   # スタートメニューとデスクトップにショートカットを作成します
+```
+
+以後はスタートメニューの **MetAI Toru** から起動できます（`run_windows.bat` をダブルクリックしても起動します）。
+ターミナルから使いたい場合：`.venv\Scripts\python dl.py URL [-q 720] [--audio]`
+
+> Windows では Chrome / Edge の Cookie を読み取れないことがあります（Chrome 127 以降の暗号化のため）。ログインが必要な場合は **firefox** を選んでください。
+
 ### 注意
 個人利用が前提です。
 各サービスの利用規約と著作権を守ってご利用ください。
@@ -46,7 +59,7 @@ DRM保護されたコンテンツはダウンロードできません。
 
 ## English
 
-**MetAI Toru** (取る, "to take") is a macOS app for downloading video and audio.
+**MetAI Toru** (取る, "to take") is a macOS / Windows app for downloading video and audio.
 It is built on [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ### How to use
@@ -72,6 +85,19 @@ open "MetAI Toru.app"
 
 Prefer the terminal? `./dl.py URL [-q 720] [--audio]`
 
+### Windows
+Requirements: Windows 10 / 11, Python 3.10+, `winget install Gyan.FFmpeg OpenJS.NodeJS.LTS`
+
+```powershell
+git clone https://github.com/metaijp/metai-toru.git; cd metai-toru
+powershell -ExecutionPolicy Bypass -File install_windows.ps1   # adds Start menu and Desktop shortcuts
+```
+
+From then on, open **MetAI Toru** from the Start menu (or double-click `run_windows.bat`).
+Prefer the terminal? `.venv\Scripts\python dl.py URL [-q 720] [--audio]`
+
+> On Windows, cookies from Chrome / Edge often can't be read (Chrome 127+ encryption). If a login is needed, choose **firefox**.
+
 ### Notice
 For personal use only.
 Please respect each service's terms of use and copyright.
@@ -84,7 +110,7 @@ License: [MIT](LICENSE)
 
 ## Español
 
-**MetAI Toru** (取る, "tomar") es una app para macOS que descarga vídeo y audio.
+**MetAI Toru** (取る, "tomar") es una app para macOS y Windows que descarga vídeo y audio.
 Está basada en [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ### Cómo se usa
@@ -109,6 +135,19 @@ open "MetAI Toru.app"
 ```
 
 ¿Prefieres la terminal? `./dl.py URL [-q 720] [--audio]`
+
+### Windows
+Requisitos: Windows 10 / 11, Python 3.10+, `winget install Gyan.FFmpeg OpenJS.NodeJS.LTS`
+
+```powershell
+git clone https://github.com/metaijp/metai-toru.git; cd metai-toru
+powershell -ExecutionPolicy Bypass -File install_windows.ps1   # crea accesos directos en el menú Inicio y el Escritorio
+```
+
+Después, abre **MetAI Toru** desde el menú Inicio (o haz doble clic en `run_windows.bat`).
+¿Prefieres la terminal? `.venv\Scripts\python dl.py URL [-q 720] [--audio]`
+
+> En Windows, a menudo no se pueden leer las cookies de Chrome / Edge (cifrado de Chrome 127+). Si hace falta iniciar sesión, elige **firefox**.
 
 ### Aviso
 Solo para uso personal.

@@ -1,6 +1,10 @@
 #!/bin/bash
 # Genera "MetAI Toru.app" apuntando a esta carpeta (icono y nombre propios en el Dock).
 set -e
+if [ "$(uname)" != "Darwin" ]; then
+  echo "build_app.sh es solo para macOS. En Windows usa install_windows.ps1 / run_windows.bat." >&2
+  exit 1
+fi
 cd "$(dirname "$0")"
 D="$(pwd)"
 APP="$D/MetAI Toru.app"

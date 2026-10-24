@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Descargador de vídeos para uso personal, basado en yt-dlp.
 
-Uso:
+Uso (en Windows: .venv/Scripts/python dl.py URL …):
     ./dl.py URL [URL ...]
     ./dl.py URL --audio              # solo audio (mp3)
     ./dl.py URL -q 720               # altura máxima
@@ -15,13 +15,15 @@ from pathlib import Path
 import yt_dlp
 from yt_dlp.utils import DownloadError
 
+import compat
+
 
 def build_opts(args):
     out_dir = Path(args.output).expanduser()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     opts = {
-        "outtmpl": str(out_dir / "%(title).150B [%(id)s].%(ext)s"),
+        "outtmpl": str(out_dir / f"%(title).{compat.max_title_len(out_dir)}B [%(id)s].%(ext)s"),
         "noplaylist": not args.playlist,
         "merge_output_format": "mp4",
         "restrictfilenames": False,
@@ -30,8 +32,7 @@ def build_opts(args):
         "fragment_retries": 10,
         "concurrent_fragment_downloads": 4,
         "progress": True,
-        "js_runtimes": {"node": {}},
-        "remote_components": {"ejs:github"},
+        **compat.tool_opts(),  # ffmpeg + node (runtime JS de yt-dlp)
     }
 
     if args.audio:
@@ -56,6 +57,7 @@ def build_opts(args):
 
 
 def main():
+    compat.utf8_console()
     p = argparse.ArgumentParser(description="Descargar vídeos de internet (yt-dlp)")
     p.add_argument("urls", nargs="+")
     p.add_argument("-o", "--output", default="~/Downloads/videos", help="carpeta de salida")
@@ -64,7 +66,7 @@ def main():
     p.add_argument("-p", "--playlist", action="store_true", help="descargar listas completas")
     p.add_argument("-s", "--subs", action="store_true", help="descargar subtítulos")
     p.add_argument("-l", "--list", action="store_true", help="listar formatos")
-    p.add_argument("--browser", help="cookies del navegador: chrome, safari, firefox...")
+    p.add_argument("--browser", help="cookies del navegador: firefox, chrome, edge, brave, safari (macOS)...")
     p.add_argument("--cookies", help="archivo cookies.txt")
     args = p.parse_args()
 

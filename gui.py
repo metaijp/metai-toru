@@ -3,9 +3,6 @@
 import json
 import math
 import re
-import os
-import shutil
-import subprocess
 import threading
 import tkinter as tk
 from pathlib import Path
@@ -14,6 +11,8 @@ from tkinter import ttk, messagebox, filedialog
 import yt_dlp
 from PIL import Image, ImageDraw, ImageFilter, ImageTk
 from yt_dlp.utils import DownloadError
+
+import compat
 
 # ---------- datos ----------
 PLATFORMS = {
@@ -30,6 +29,8 @@ VIDEO_FORMATS = ["mp4", "mkv", "webm"]
 AUDIO_FORMATS = ["mp3", "m4a", "opus", "flac", "wav"]
 AUDIO_QUALITY = ["Mejor", "320 kbps", "256 kbps", "192 kbps", "128 kbps", "96 kbps"]
 BROWSERS = ["Ninguno", "chrome", "safari", "firefox", "brave", "edge"]
+if not compat.IS_MAC:
+    BROWSERS.remove("safari")  # Safari solo existe en macOS
 
 # ---------- estilo MetAI (azul → violeta) ----------
 BLUE, VIOLET = "#3B82F6", "#8B5CF6"
@@ -39,7 +40,8 @@ CARD = "#FFFFFF"
 BORDER = "#DDD6FE"
 MUTED = "#7C6FA8"
 OK, ERR, WARN = "#059669", "#DC2626", "#B45309"
-FONT = "Helvetica Neue"
+FONT = "Helvetica Neue" if compat.IS_MAC else ("Segoe UI" if compat.IS_WIN else "DejaVu Sans")
+HAND = "pointinghand" if compat.IS_MAC else "hand2"  # "pointinghand" solo existe en Tk/Aqua
 
 
 def detect_platform(url):
@@ -83,7 +85,7 @@ class Pill(tk.Canvas):
     def __init__(self, master, text, value, variable, command=None, bg=CARD, pad_x=16, h=34):
         f = (FONT, 12, "bold")
         w = tk.Label(font=f, text=text).winfo_reqwidth() + pad_x * 2
-        super().__init__(master, width=w, height=h, bg=bg, highlightthickness=0, cursor="pointinghand")
+        super().__init__(master, width=w, height=h, bg=bg, highlightthickness=0, cursor=HAND)
         self.text, self.value, self.var, self.cmd = text, value, variable, command
         self.w, self.h, self.f, self.hover = w, h, f, False
         self.bind("<Button-1>", self._click)
@@ -116,7 +118,7 @@ class Pill(tk.Canvas):
 
 class BigButton(tk.Canvas):
     def __init__(self, master, text, command, w=300, h=48, bg=BG, primary=True):
-        super().__init__(master, width=w, height=h, bg=bg, highlightthickness=0, cursor="pointinghand")
+        super().__init__(master, width=w, height=h, bg=bg, highlightthickness=0, cursor=HAND)
         self.text, self.cmd, self.w, self.h, self.primary = text, command, w, h, primary
         self.enabled, self.hover = True, False
         self.bind("<Button-1>", lambda e: self.enabled and self.cmd())
@@ -293,19 +295,13 @@ T["bot"] = {
     "ko": "YouTube가 봇이 아닌지 확인을 요구합니다. '쿠키 가져올 곳'에 브라우저를 선택했습니다. 다운로드를 다시 눌러 주세요. (해당 브라우저에서 YouTube에 로그인되어 있어야 합니다)"}
 OTHER = "other"
 
-BROWSER_APPS = {
-    "brave": "/Applications/Brave Browser.app", "chrome": "/Applications/Google Chrome.app",
-    "firefox": "/Applications/Firefox.app", "edge": "/Applications/Microsoft Edge.app",
-    "safari": "/Applications/Safari.app",
-}
-
 HEIGHTS = [None, 2160, 1440, 1080, 720, 480, 360, 240]
 AUDIO_KBPS = [None, 320, 256, 192, 128, 96]
 
 
 def load_lang():
     try:
-        lang = json.loads(CONFIG.read_text()).get("lang", DEFAULT_LANG)
+        lang = json.loads(CONFIG.read_text(encoding="utf-8")).get("lang", DEFAULT_LANG)
         return lang if lang in LANGS else DEFAULT_LANG
     except Exception:
         return DEFAULT_LANG
@@ -344,20 +340,19 @@ def make_header(w, h):
     return img.resize((w, h), Image.LANCZOS)
 
 
-def find_ffmpeg():
-    """Al abrir la app desde el Dock el PATH es mínimo: busca ffmpeg también en las rutas de Homebrew."""
-    extra = ["/opt/homebrew/bin", "/opt/homebrew/opt/ffmpeg-full/bin", "/usr/local/bin", "/opt/local/bin"]
-    return shutil.which("ffmpeg", path=os.pathsep.join([os.environ.get("PATH", "")] + extra))
-
-
-os.environ["PATH"] = os.pathsep.join([os.environ.get("PATH", ""), "/opt/homebrew/bin", "/usr/local/bin"])
+# Al abrir la app desde el Dock / un acceso directo el PATH puede ser mínimo: añade rutas de ffmpeg y node.
+compat.extend_path()
 
 
 class App(tk.Tk):
     W = 580
 
     def __init__(self):
+        compat.set_app_id()
         super().__init__()
+        if compat.IS_WIN:
+            # Tk en macOS usa 72 ppp (1 pt = 1 px); en Windows 96 ppp agranda el texto un 33 % y no cabe.
+            self.tk.call("tk", "scaling", 1.0)
         self.configure(bg=BG)
         self.resizable(False, False)
         try:
@@ -394,6 +389,8 @@ class App(tk.Tk):
         self.option_add("*TCombobox*Listbox.foreground", DEEP)
         self.option_add("*TCombobox*Listbox.selectBackground", VIOLET)
         self.option_add("*TCombobox*Listbox.selectForeground", "white")
+        if not compat.IS_MAC:
+            self.option_add("*TCombobox*Listbox.font", (FONT, 12))
 
     # ---------- listas traducidas ----------
     def res_values(self):
@@ -421,6 +418,8 @@ class App(tk.Tk):
 
     def _combo(self, parent, values, index, attr, width):
         cb = ttk.Combobox(parent, values=values, state="readonly", width=width, style="M.TCombobox")
+        if not compat.IS_MAC:
+            cb.configure(font=(FONT, 12))  # la fuente por defecto de Tk queda diminuta con tk scaling 1.0
         cb.current(index)
         cb.bind("<<ComboboxSelected>>", lambda e: (setattr(self, attr, cb.current()), cb.selection_clear()))
         return cb
@@ -461,7 +460,7 @@ class App(tk.Tk):
         hd.create_text(px0 + pw / 2, py0 + ph / 2, text=f"🌐  {LANGS[self.lang]}  ▾", fill=DEEP,
                        font=(FONT, 12, "bold"), tags="lang")
         hd.tag_bind("lang", "<Button-1>", lambda e: self._lang_menu(hd, px0, py0 + ph + 6, pw))
-        hd.tag_bind("lang", "<Enter>", lambda e: hd.config(cursor="pointinghand"))
+        hd.tag_bind("lang", "<Enter>", lambda e: hd.config(cursor=HAND))
         hd.tag_bind("lang", "<Leave>", lambda e: hd.config(cursor=""))
 
         body = tk.Frame(self, bg=BG, padx=28, pady=16)
@@ -521,7 +520,7 @@ class App(tk.Tk):
         self.btn = BigButton(act, self.tr("download"), self._start, w=340, h=50)
         self.btn.pack(side="left")
         self.btn.set_enabled(not self.busy)
-        BigButton(act, self.tr("openfolder"), lambda: subprocess.run(["open", self.out_dir.get()]), w=160, h=50,
+        BigButton(act, self.tr("openfolder"), lambda: compat.open_folder(self.out_dir.get()), w=160, h=50,
                   primary=False).pack(side="left", padx=(12, 0))
 
         self.bar = Progress(body, w=W - 56)
@@ -558,7 +557,7 @@ class App(tk.Tk):
         for code, name in LANGS.items():
             cur = code == self.lang
             row = tk.Label(inner, text=("✓  " if cur else "     ") + name, anchor="w", bg="#EEE9FF" if cur else CARD,
-                           fg=DEEP, font=(FONT, 13, "bold" if cur else "normal"), padx=14, pady=7, cursor="pointinghand")
+                           fg=DEEP, font=(FONT, 13, "bold" if cur else "normal"), padx=14, pady=7, cursor=HAND)
             row.pack(fill="x")
             row.bind("<Enter>", lambda e, r=row: r.config(bg="#DDD6FE"))
             row.bind("<Leave>", lambda e, r=row, c=cur: r.config(bg="#EEE9FF" if c else CARD))
@@ -574,7 +573,7 @@ class App(tk.Tk):
             return
         self.lang = code
         try:
-            CONFIG.write_text(json.dumps({"lang": code}))
+            CONFIG.write_text(json.dumps({"lang": code}), encoding="utf-8")
         except OSError:
             pass
         self._rebuild()
@@ -629,7 +628,7 @@ class App(tk.Tk):
         out = Path(self.out_dir.get()).expanduser()
         out.mkdir(parents=True, exist_ok=True)
         o = {
-            "outtmpl": str(out / "%(title).150B [%(id)s].%(ext)s"),
+            "outtmpl": str(out / f"%(title).{compat.max_title_len(out)}B [%(id)s].%(ext)s"),
             "noplaylist": True,
             "windowsfilenames": True,
             "retries": 10,
@@ -639,9 +638,7 @@ class App(tk.Tk):
             "no_warnings": True,
             "noprogress": True,
             "progress_hooks": [self._hook],
-            "js_runtimes": {"node": {}},
-            **({"ffmpeg_location": find_ffmpeg()} if find_ffmpeg() else {}),
-            "remote_components": {"ejs:github"},
+            **compat.tool_opts(),  # ffmpeg + node (runtime JS de yt-dlp)
         }
         if self.mode.get() == "audio":
             fmt, kbps = AUDIO_FORMATS[self.i_afmt], AUDIO_KBPS[self.i_aq]
@@ -698,8 +695,8 @@ class App(tk.Tk):
             self._set_status("error", ERR)
             if "not a bot" in msg or "Sign in to confirm" in msg:
                 if self.i_browser == 0:
-                    for name, path in BROWSER_APPS.items():
-                        if Path(path).exists() or name == "safari":
+                    for name in compat.installed_browsers():
+                        if name in BROWSERS:
                             self.i_browser = BROWSERS.index(name)
                             break
                     self._rebuild()
